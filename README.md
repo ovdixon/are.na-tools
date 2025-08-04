@@ -1,14 +1,10 @@
 <div align="center">
-  <img src="img/logo.png" alt="Demo" width="180"/>
+  <img src="img/logo.png" alt="Demo" width="120"/>
   <h1>Are.na Tools</h1>
 </div>
 
 
 ## Are.na Snip
-
-<div align="center">
-  <img src="browser/snip/gif/demo.gif" alt="Demo" width="240"/>
-</div>
 
 This Chrome extension, built with Manifest V3, includes screenshot snipping features that expand upon the official Are.na browser extension.
 
