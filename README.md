@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="img/logo.png" alt="Demo" width="240"/>
+  <img src="img/log" alt="Demo" width="180"/>
   <h1>Are.na Tools</h1>
 </div>
 
