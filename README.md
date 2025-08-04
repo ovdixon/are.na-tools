@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="gif/demo.gif" alt="Demo" width="240"/>
+  <img src="browser/snip/gif/demo.gif" alt="Demo" width="240"/>
   <h1>Are.na Snip</h1>
 </div>
 
