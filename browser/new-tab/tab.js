@@ -20,14 +20,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     await getUserDetails()
         .then(async (user) => {
-            await getMyBlock(user.id)
-                .then((channels) => {
-                    if (channels) {
-                        const randomChannel = channels[Math.floor(Math.random() * channels.length)];
-                        
-                        
-                    }
-                })
+            await getBlock(user.id, 'my');
+            await getFollowing(user.id).then((following) => {
+                console.log(following)
+                const followingId = following.user_id || following.id
+                getBlock(followingId, 'following')
+            })
+
         })
 
 });
@@ -82,17 +81,12 @@ async function getUserDetails() {
 
 }
 
-function getRandomChannel(channels) {
-    if (!channels || channels.length === 0) {
+function getRandom(items) {
+    if (!items || items.length === 0) {
         return null;
     }
-    const randomIndex = Math.floor(Math.random() * channels.length);
-    const channel = channels[randomIndex];
-    return channel;
-}
-
-function handleBlock(block) {
-    
+    const randomIndex = Math.floor(Math.random() * items.length);
+    return items[randomIndex];
 }
 
 async function getRandomBlock(blocks) {
@@ -116,7 +110,39 @@ async function getRandomBlock(blocks) {
     }
 }
 
-async function getMyBlock(userId) {
+
+function handleBlock(block, type) {
+    const img = document.getElementById(`${type}-block`);
+    img.src = block.image.large.url || block.image.small.url || block.image.thumb.url;
+    img.alt = block.title || 'Are.na Block';
+    img.addEventListener('click', () => {
+        chrome.tabs.create({ url: `https://are.na/block/${block.id}` });
+    });
+    img.classList.add('cursor-pointer');
+
+    img.classList.remove('hidden');
+}
+
+
+async function getFollowing(userId) {
+    try {
+        const response = await fetch(`https://api.are.na/v2/users/${userId}/following`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`
+            },
+        });
+        const data = await response.json();
+        if (data.following && data.following.length > 0) {
+            const randomFollowing = getRandom(data.following);
+            return randomFollowing;
+        } 
+    } catch (err) {
+        throw new Error('Fetching following channels.')
+    }
+}
+
+async function getBlock(userId, type) {
     try {
         const response = await fetch(`https://api.are.na/v2/users/${userId}/channels`, {
             headers: {
@@ -126,20 +152,10 @@ async function getMyBlock(userId) {
         });
         const data = await response.json();
         if (data.channels && data.channels.length > 0) {
-            const randomChannel = getRandomChannel(data.channels);
+            const randomChannel = getRandom(data.channels);
             if (randomChannel) {
                 const randomBlock = await getRandomBlock(randomChannel.contents);
-                if (randomBlock) {
-                    const img = document.getElementById('my-block');
-                    img.src = randomBlock.image.large.url || randomBlock.image.small.url || randomBlock.image.thumb.url;
-                    img.alt = randomBlock.title || 'Are.na Block';
-                    img.addEventListener('click', () => {
-                        chrome.tabs.create({ url: `https://are.na/block/${randomBlock.id}` });
-                    });
-                    img.classList.add('cursor-pointer');
-                    
-                    img.classList.remove('hidden');
-                }
+                if (randomBlock) handleBlock(randomBlock, type);
             }
         }
     } catch (err) {
@@ -163,22 +179,17 @@ document.getElementById('login').addEventListener('click', async () => {
         }
         const url = new URL(redirectUrl);
         const code = url.searchParams.get('code');
-        console.log({ code: code })
         const token = await getLocalToken(code);
         auth = { token: token };
-        console.log({ token: token })
         if (token) chrome.storage.local.set({ token: token })
             .then(async () => {
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('snip-container').style.display = 'flex';
                 await getUserDetails()
                     .then(async (user) => {
-                        await getMyBlock(user.id)
-                            .then((channels) => {
-                                if (channels) {
-                                    console.log(channels);
-                                }
-                            })
+                        console.log(user)
+                        await getBlock(user.id);
+                        await getFollowing(user.id)
                     })
             });
         return false;
