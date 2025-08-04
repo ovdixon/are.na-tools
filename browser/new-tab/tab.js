@@ -7,27 +7,28 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     auth = await chrome.storage.local.get('token') || null;
     document.getElementById('auth-container').style.display = !auth.token ? 'flex' : 'none';
-    document.getElementById('snip-container').style.display = !auth.token ? 'none' : 'flex';
-
-    // document.getElementById('logout').addEventListener('click', async () => {
-    //     chrome.storage.local.remove('token')
-    //         .then(() => {
-    //             document.getElementById('auth-container').style.display = 'flex';
-    //             document.getElementById('snip-container').style.display = 'none';
-    //         });
-    //     return false;
-    // })
+    document.getElementById('logout').style.display = auth.token ? 'block' : 'none';
+    document.getElementById('footer-separator').style.display = auth.token ? 'block' : 'none';
 
     await getUserDetails()
         .then(async (user) => {
             await getBlock(user.id, 'my');
             await getFollowing(user.id).then((following) => {
-                console.log(following)
                 const followingId = following.user_id || following.id
                 getBlock(followingId, 'following')
             })
 
         })
+
+    document.getElementById('logout').addEventListener('click', async () => {
+        chrome.storage.local.remove('token')
+            .then(() => {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('blocks-wrapper').style.display = 'none';
+            });
+        return false;
+    })
+
 
 });
 
@@ -112,17 +113,47 @@ async function getRandomBlock(blocks) {
 
 
 function handleBlock(block, type) {
-    const img = document.getElementById(`${type}-block`);
-    img.src = block.image.large.url || block.image.small.url || block.image.thumb.url;
-    img.alt = block.title || 'Are.na Block';
-    img.addEventListener('click', () => {
+    const blocksWrapper = document.getElementById('blocks-wrapper');
+    if (!blocksWrapper) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = "flex flex-col items-center";
+
+    let blockContentElement;
+
+    if (block.class === 'Text') {
+        blockContentElement = document.createElement('div');
+        blockContentElement.className = "block w-96 h-96 rounded-lg border border-gray-300 cursor-pointer p-6 overflow-y-auto bg-white";
+        blockContentElement.innerHTML = block.content_html;
+    } else if (block.image && block.image.large) {
+        blockContentElement = document.createElement('img');
+        blockContentElement.className = "object-cover block w-96 h-96 rounded-lg border border-gray-300 cursor-pointer";
+        blockContentElement.src = block.image.large.url || block.image.small.url || block.image.thumb.url;
+        blockContentElement.alt = block.title || 'Are.na Block';
+    } else {
+        blockContentElement = document.createElement('div');
+        blockContentElement.className = "flex items-center justify-center text-gray-500 block w-96 h-96 rounded-lg border border-gray-300 cursor-pointer p-6 bg-gray-100";
+        blockContentElement.textContent = "Unsupported block type";
+    }
+
+    blockContentElement.addEventListener('click', () => {
         chrome.tabs.create({ url: `https://are.na/block/${block.id}` });
     });
-    img.classList.add('cursor-pointer');
 
-    img.classList.remove('hidden');
+    const infoLink = document.createElement('a');
+    infoLink.href = `https://are.na/block/${block.id}`;
+    infoLink.rel = 'noopener noreferrer';
+    infoLink.className = "block w-full mt-2 text-center text-xs text-gray-500 hover:text-gray-700 hover:underline";
+
+    const title = block.title || block.generated_title || '';
+    const truncatedTitle = title.length > 40 ? title.substring(0, 40) + '...' : title;
+    infoLink.innerHTML = `${truncatedTitle}<br>${block.user.full_name}`;
+
+    wrapper.appendChild(blockContentElement);
+    wrapper.appendChild(infoLink);
+
+    blocksWrapper.appendChild(wrapper);
 }
-
 
 async function getFollowing(userId) {
     try {
@@ -136,7 +167,7 @@ async function getFollowing(userId) {
         if (data.following && data.following.length > 0) {
             const randomFollowing = getRandom(data.following);
             return randomFollowing;
-        } 
+        }
     } catch (err) {
         throw new Error('Fetching following channels.')
     }
@@ -184,12 +215,15 @@ document.getElementById('login').addEventListener('click', async () => {
         if (token) chrome.storage.local.set({ token: token })
             .then(async () => {
                 document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('snip-container').style.display = 'flex';
+                document.getElementById('blocks-wrapper').style.display = 'flex';
                 await getUserDetails()
                     .then(async (user) => {
-                        console.log(user)
-                        await getBlock(user.id);
-                        await getFollowing(user.id)
+                        await getBlock(user.id, 'my');
+                        await getFollowing(user.id).then((following) => {
+                            const followingId = following.user_id || following.id
+                            getBlock(followingId, 'following')
+                        })
+
                     })
             });
         return false;
