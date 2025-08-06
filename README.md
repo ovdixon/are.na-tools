@@ -3,22 +3,18 @@
   <h1>Are.na Tools</h1>
 </div>
 
+## [Are.na New Tab](https://chromewebstore.google.com/detail/arena-new-tab/cfpfhegihebgbcflodlccigcnegaeico?hl=en-US&utm_source=ext_sidebar)
 
-## Are.na Snip
+![Demo Screenshot](/img/snip.png)
 
-Chrome extension, built with Manifest V3, includes screenshot snipping features that expand upon the official Are.na browser extension.
+Chrome extension (MV3) shows two random Are.na blocks everytime you open a new tab; one of your own blocks, and one from a person/channel you follow. Remake of the original extension by a-p.studio which is no longer supported due to MV3.
 
-Due to limitations in the official Are.na API (which doesn't support direct image uploads or posting), this extension uses a workaround via Cloudflare Workers and R2 storage. Images uploaded through this process are temporary, thanks to an object lifecycle policy on the R2 bucket that automatically deletes them after a set time.
+## [Are.na Snip](https://chromewebstore.google.com/detail/arena-snip/lhmihhkjpppgbnpgpcbhoeeijdaeoihc?hl=en-US&utm_source=ext_sidebar)
 
-1. A pre-signed upload URL is requested from the Cloudflare Worker.
-2. The image is uploaded to the R2 bucket.
-3. A pre-signed fetch URL is generated.
-4. The URL is passed to Are.na's "post block" endpoint, allowing you to post the image.
+![Demo Screenshot](/img/new-tab.png)
 
+Chrome extension (MV3) includes screenshot snipping features. The official Are.na API doesn't support direct image uploads, instead the extension implements a workaround using via Cloudflare Workers and R2 storage. Images uploaded through this process are temporary, thanks to an object lifecycle policy on the R2 bucket that automatically deletes them after a set time.
 
-
-## Are.na New Tab
-Chrome extension, built with Manifest V3, shows two random Are.na blocks everytime you open a new tab; one of your own blocks, and one from a person/channel you follow. Remake of the original extension by a-p.studio which is no longer supported due to MV3.
 
 ## Bugs & Feature Requests
 If you encounter any bugs or have feature requests, please open an issue in this repository.
